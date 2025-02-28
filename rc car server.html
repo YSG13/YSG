@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+        }
+        h1 { color: #4CAF50; }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 15px;
+            background: #1f1f1f;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 255, 0, 0.3);
+        }
+        .status-box {
+            display: inline-block;
+            width: 120px;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .green { background-color: #4CAF50; color: white; }
+        .red { background-color: #D32F2F; color: white; }
+        .blue { background-color: #1976D2; color: white; }
+        .btn {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .btn:hover { background: #3e8e41; }
+    </style>
+    <script>
+        function updateData() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("battery").innerText = data.battery + "V (" + data.batteryPercent + "%)";
+                    document.getElementById("motor").innerText = data.motor ? "Running" : "Stopped";
+                    document.getElementById("wifi_status").innerText = data.wifi ? "Connected" : "Disconnected";
+                    document.getElementById("horn").innerText = data.horn ? "🔊 On" : "Off";
+                    document.getElementById("co2").innerText = data.co2 + " PPM";
+                    document.getElementById("mic").innerText = data.microphone;
+                    
+                    for (let i = 0; i < 4; i++) {
+                        document.getElementById("motor" + i).innerText = data.motors[i] + " RPM";
+                        document.getElementById("servo" + i).innerText = data.servos[i] + "°";
+                    }
+
+                    for (let i = 0; i < 8; i++) {
+                        document.getElementById("ir" + i).className = "status-box " + (data.ir[i] ? "red" : "green");
+                        document.getElementById("ir" + i).innerHTML = "IR " + (i + 1) + "<br>" + (data.ir[i] ? "🚨 Obstacle" : "✅ Clear");
+                    }
+                });
+        }
+        function sendCommand(cmd) {
+            fetch('/control?cmd=' + cmd);
+        }
+        setInterval(updateData, 500);
+    </script>
+</head>
+<body>
+
+    <h1>🚗 Robotic Car Control Panel</h1>
+    <div class="container">
+        <div class="status-box blue">🔋 Battery: <span id="battery">0V</span></div>
+        <div class="status-box blue">📡 WiFi: <span id="wifi_status">Disconnected</span></div>
+        <div class="status-box blue">🔔 Horn: <span id="horn">Off</span></div>
+        <div class="status-box blue">🛑 CO2: <span id="co2">0 PPM</span></div>
+        <div class="status-box blue">🎤 Mic: <span id="mic">0</span></div>
+
+        <h3>🚧 IR Sensor Status</h3>
+        <div>
+            <div class="status-box" id="ir0">IR 1</div>
+            <div class="status-box" id="ir1">IR 2</div>
+            <div class="status-box" id="ir2">IR 3</div>
+            <div class="status-box" id="ir3">IR 4</div>
+        </div>
+        <div>
+            <div class="status-box" id="ir4">IR 5</div>
+            <div class="status-box" id="ir5">IR 6</div>
+            <div class="status-box" id="ir6">IR 7</div>
+            <div class="status-box" id="ir7">IR 8</div>
+        </div>
+
+        <h3>⚙️ Motors & Servos</h3>
+        <div class="status-box">Motor 1: <span id="motor0">0</span></div>
+        <div class="status-box">Motor 2: <span id="motor1">0</span></div>
+        <div class="status-box">Motor 3: <span id="motor2">0</span></div>
+        <div class="status-box">Motor 4: <span id="motor3">0</span></div>
+        <div class="status-box">Servo 1: <span id="servo0">0</span></div>
+        <div class="status-box">Servo 2: <span id="servo1">0</span></div>
+        <div class="status-box">Servo 3: <span id="servo2">0</span></div>
+        <div class="status-box">Servo 4: <span id="servo3">0</span></div>
+
+        <h3>🎮 Controls</h3>
+        <button class="btn" onclick="sendCommand('forward')">⬆️ Forward</button>
+        <br>
+        <button class="btn" onclick="sendCommand('left')">⬅️ Left</button>
+        <button class="btn" onclick="sendCommand('right')">➡️ Right</button>
+        <br>
+        <button class="btn" onclick="sendCommand('backward')">⬇️ Backward</button>
+    </div>
+
+</body>
+</html>
